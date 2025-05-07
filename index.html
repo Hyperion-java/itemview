@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Item Database Viewer (GitHub Auto Load)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #333; color: white; }
+  </style>
+</head>
+<body>
+  <h1>Item Database Viewer (GitHub Auto Load)</h1>
+  <table id="itemsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Material</th>
+        <th>Rarity</th>
+        <th>Stats</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Dynamic rows go here -->
+    </tbody>
+  </table>
+
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <script>
+    const fileNames = [
+      'bloodseeker',
+      'another_item',
+      'example_item'
+      // Add more filenames here (without .yml extension)
+    ];
+    const githubBaseUrl = 'https://raw.githubusercontent.com/Hyperion-java/Items/main/';
+
+    function stripColorCodes(text) {
+      return text.replace(/&[0-9a-fklmnor]/gi, '').trim();
+    }
+
+    async function loadItem(id) {
+      const url = `${githubBaseUrl}${id}.yml`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const content = await res.text();
+        const data = jsyaml.load(content);
+        const name = stripColorCodes(data.name || '');
+        const material = data.material || '';
+        const rarity = data.rarity || '';
+        const statsObj = data.stats || {};
+        const stats = Object.entries(statsObj).map(([k,v]) => `${k}: ${v}`).join(', ');
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${id}</td>
+          <td>${name}</td>
+          <td>${material}</td>
+          <td>${rarity}</td>
+          <td>${stats}</td>
+        `;
+        document.querySelector('#itemsTable tbody').appendChild(row);
+      } catch (err) {
+        console.error(`Failed to load ${id}.yml:`, err);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      for (const id of fileNames) {
+        await loadItem(id);
+      }
+    });
+  </script>
+</body>
+</html>
