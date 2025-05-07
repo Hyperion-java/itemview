@@ -2,16 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Item Database Viewer (GitHub Auto Load)</title>
+  <title>Item Database Viewer</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background: #333; color: white; }
+    body {
+      background: #121212;
+      color: #ddd;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 5px; }
+    #itemCount { margin-bottom: 15px; font-size: 1.1em; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1e1e1e;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #333;
+      color: #fff;
+    }
+    tr:nth-child(even) { background: #2a2a2a; }
+    .rarity-common { color: #ccc; }
+    .rarity-uncommon { color: #00ff00; }
+    .rarity-rare { color: #00bfff; }
+    .rarity-epic { color: #bf00ff; }
+    .rarity-legendary { color: gold; }
+    .rarity-ascended { color: darkred; }
   </style>
 </head>
 <body>
-  <h1>Item Database Viewer (GitHub Auto Load)</h1>
+  <h1>Item Database Viewer</h1>
+  <p id="itemCount">Loading items...</p>
   <table id="itemsTable">
     <thead>
       <tr>
@@ -19,60 +45,127 @@
         <th>Name</th>
         <th>Material</th>
         <th>Rarity</th>
-        <th>Stats</th>
+        <th>Damage</th>
+        <th>Strength</th>
+        <th>Defense</th>
+        <th>Speed</th>
+        <th>Ferocity</th>
+        <th>Prosperity</th>
+        <th>True Defense</th>
+        <th>Mining Fortune</th>
+        <th>Fishing Fortune</th>
+        <th>Farming Fortune</th>
+        <th>Attack Speed</th>
+        <th>Amulet Damage</th>
+        <th>Amulet Defense</th>
+        <th>True Damage</th>
+        <th>Heat Resistance</th>
       </tr>
     </thead>
     <tbody>
-      <!-- Dynamic rows go here -->
+      <!-- rows will be added here -->
     </tbody>
   </table>
 
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <script>
-    const fileNames = [
-      'bloodseeker',
-      'another_item',
-      'example_item'
-      // Add more filenames here (without .yml extension)
+    const githubApiUrl = 'https://api.github.com/repos/Hyperion-java/Items/contents/';
+    const statKeys = [
+      'damage', 'strength', 'defense', 'speed', 'ferocity', 'prosperity', 'truedefense',
+      'mining_fortune', 'fishing_fortune', 'farming_fortune', 'attack_speed',
+      'amuletdamage', 'amuletdefense', 'truedamage', 'heat_resistance'
     ];
-    const githubBaseUrl = 'https://raw.githubusercontent.com/Hyperion-java/Items/main/';
+    const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ascended'];
 
     function stripColorCodes(text) {
       return text.replace(/&[0-9a-fklmnor]/gi, '').trim();
     }
 
-    async function loadItem(id) {
-      const url = `${githubBaseUrl}${id}.yml`;
+    function getCleanRarity(rarity) {
+      return stripColorCodes(rarity).toLowerCase().trim();
+    }
+
+    function getRarityRank(rarity) {
+      const clean = getCleanRarity(rarity);
+      for (let i = 0; i < rarityOrder.length; i++) {
+        if (clean === rarityOrder[i]) return i;
+      }
+      return rarityOrder.length; // unknown → last
+    }
+
+    function getRarityClass(rarity) {
+      const clean = getCleanRarity(rarity);
+      if (clean === 'legendary') return 'rarity-legendary';
+      if (clean === 'epic') return 'rarity-epic';
+      if (clean === 'uncommon') return 'rarity-uncommon';
+      if (clean === 'common') return 'rarity-common';
+      if (clean === 'rare') return 'rarity-rare';
+      if (clean === 'ascended') return 'rarity-ascended';
+      return '';
+    }
+
+    async function fetchFileList() {
       try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const content = await res.text();
-        const data = jsyaml.load(content);
-        const name = stripColorCodes(data.name || '');
-        const material = data.material || '';
-        const rarity = data.rarity || '';
-        const statsObj = data.stats || {};
-        const stats = Object.entries(statsObj).map(([k,v]) => `${k}: ${v}`).join(', ');
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${id}</td>
-          <td>${name}</td>
-          <td>${material}</td>
-          <td>${rarity}</td>
-          <td>${stats}</td>
-        `;
-        document.querySelector('#itemsTable tbody').appendChild(row);
+        const res = await fetch(githubApiUrl);
+        const files = await res.json();
+        return files.filter(file => file.name.endsWith('.yml'));
       } catch (err) {
-        console.error(`Failed to load ${id}.yml:`, err);
+        console.error('Failed to fetch files:', err);
+        return [];
       }
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      for (const id of fileNames) {
-        await loadItem(id);
+    async function loadItem(file) {
+      try {
+        const res = await fetch(file.download_url);
+        const content = await res.text();
+        const data = jsyaml.load(content);
+        const id = file.name.replace(/\.ya?ml$/, '');
+        const name = stripColorCodes(data.name || '');
+        const material = data.material || '';
+        const rarity = data.rarity || '';
+        const rarityClass = getRarityClass(rarity);
+        const rarityRank = getRarityRank(rarity);
+        const statsObj = (typeof data.stats === 'object' && data.stats !== null) ? data.stats : {};
+        const statValues = statKeys.map(key => statsObj.hasOwnProperty(key) ? statsObj[key] : '*');
+        return { id, name, material, rarity, rarityClass, rarityRank, statValues };
+      } catch (err) {
+        console.error(`Failed loading ${file.name}:`, err);
+        return null;
       }
-    });
+    }
+
+    async function main() {
+      const files = await fetchFileList();
+      document.getElementById('itemCount').textContent = `Found ${files.length} items.`;
+
+      const loadPromises = files.map(file => loadItem(file));
+      const items = (await Promise.all(loadPromises)).filter(item => item !== null);
+
+      // ✅ Sort by rarity first, then alphabetically inside rarity
+      items.sort((a, b) => {
+        if (a.rarityRank !== b.rarityRank) return a.rarityRank - b.rarityRank;
+        return a.name.localeCompare(b.name);
+      });
+
+      const tbody = document.querySelector('#itemsTable tbody');
+      tbody.innerHTML = '';
+
+      for (const item of items) {
+        const row = document.createElement('tr');
+        row.className = item.rarityClass;
+        row.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.name}</td>
+          <td>${item.material}</td>
+          <td>${item.rarity}</td>
+          ${item.statValues.map(val => `<td>${val}</td>`).join('')}
+        `;
+        tbody.appendChild(row);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', main);
   </script>
 </body>
 </html>
