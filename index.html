@@ -47,6 +47,7 @@
         <th>Rarity</th>
         <th>Damage</th>
         <th>Strength</th>
+        <th>Health</th>
         <th>Defense</th>
         <th>Speed</th>
         <th>Ferocity</th>
@@ -60,7 +61,6 @@
         <th>Amulet Defense</th>
         <th>True Damage</th>
         <th>Heat Resistance</th>
-        <th>Health</th>
       </tr>
     </thead>
     <tbody>
@@ -72,9 +72,9 @@
   <script>
     const githubApiUrl = 'https://api.github.com/repos/Hyperion-java/Items/contents/';
     const statKeys = [
-      'damage', 'strength', 'defense', 'speed', 'ferocity', 'prosperity', 'truedefense',
+      'damage', 'strength', 'health', 'defense', 'speed', 'ferocity', 'prosperity', 'truedefense',
       'mining_fortune', 'fishing_fortune', 'farming_fortune', 'attack_speed',
-      'amuletdamage', 'amuletdefense', 'truedamage', 'heat_resistance', 'health'
+      'amuletdamage', 'amuletdefense', 'truedamage', 'heat_resistance'
     ];
     const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ascended'];
 
