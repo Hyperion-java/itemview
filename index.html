@@ -125,7 +125,7 @@
         const name = stripColorCodes(data.name || '');
         const material = data.material || '';
         const rarity = data.rarity || '';
-        const type = data.type || '';
+        const type = data.type || data.Type || data.TYPE || '';
         const rarityClass = getRarityClass(rarity);
         const rarityRank = getRarityRank(rarity);
         const statsObj = (typeof data.stats === 'object' && data.stats !== null) ? data.stats : {};
