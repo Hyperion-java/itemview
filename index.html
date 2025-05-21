@@ -45,6 +45,7 @@
         <th>Name</th>
         <th>Material</th>
         <th>Rarity</th>
+        <th>Type</th>
         <th>Damage</th>
         <th>Strength</th>
         <th>Health</th>
@@ -64,7 +65,6 @@
       </tr>
     </thead>
     <tbody>
-      <!-- rows will be added here -->
     </tbody>
   </table>
 
@@ -125,6 +125,7 @@
         const name = stripColorCodes(data.name || '');
         const material = data.material || '';
         const rarity = data.rarity || '';
+        const rarity = data.type || '';
         const rarityClass = getRarityClass(rarity);
         const rarityRank = getRarityRank(rarity);
         const statsObj = (typeof data.stats === 'object' && data.stats !== null) ? data.stats : {};
@@ -160,6 +161,7 @@
           <td>${item.name}</td>
           <td>${item.material}</td>
           <td>${item.rarity}</td>
+          <td>${item.type}</td>
           ${item.statValues.map(val => `<td>${val}</td>`).join('')}
         `;
         tbody.appendChild(row);
