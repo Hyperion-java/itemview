@@ -20,7 +20,8 @@
     th, td {
       border: 1px solid #333;
       padding: 8px;
-      text-align: left;
+      text-align: middle;
+      vertical-align: top;
     }
     th {
       background: #333;
@@ -33,6 +34,32 @@
     .rarity-epic { color: #bf00ff; }
     .rarity-legendary { color: gold; }
     .rarity-ascended { color: darkred; }
+
+    td.lore-cell {
+      min-width: 300px;
+      padding-left: 20px;
+      white-space: normal;
+    }
+    td.lore-cell div {
+      margin-bottom: 4px;
+    }
+
+    .mc-color-0 { color: #000000; }
+    .mc-color-1 { color: #0000aa; }
+    .mc-color-2 { color: #00aa00; }
+    .mc-color-3 { color: #00aaaa; }
+    .mc-color-4 { color: #aa0000; }
+    .mc-color-5 { color: #aa00aa; }
+    .mc-color-6 { color: #ffaa00; }
+    .mc-color-7 { color: #aaaaaa; }
+    .mc-color-8 { color: #555555; }
+    .mc-color-9 { color: #5555ff; }
+    .mc-color-a { color: #55ff55; }
+    .mc-color-b { color: #55ffff; }
+    .mc-color-c { color: #ff5555; }
+    .mc-color-d { color: #ff55ff; }
+    .mc-color-e { color: #ffff55; }
+    .mc-color-f { color: #ffffff; }
   </style>
 </head>
 <body>
@@ -46,6 +73,7 @@
         <th>Material</th>
         <th>Rarity</th>
         <th>Type</th>
+        <th>Lore</th>
         <th>Damage</th>
         <th>Strength</th>
         <th>Health</th>
@@ -64,8 +92,7 @@
         <th>Heat Resistance</th>
       </tr>
     </thead>
-    <tbody>
-    </tbody>
+    <tbody></tbody>
   </table>
 
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
@@ -91,7 +118,7 @@
       for (let i = 0; i < rarityOrder.length; i++) {
         if (clean === rarityOrder[i]) return i;
       }
-      return rarityOrder.length; // unknown → last
+      return rarityOrder.length;
     }
 
     function getRarityClass(rarity) {
@@ -105,6 +132,15 @@
       return '';
     }
 
+    function formatLoreWithColors(loreArray) {
+      if (!Array.isArray(loreArray)) return '';
+      return loreArray.map(line => {
+        const colored = line.replace(/&([0-9a-f])/gi, (_, code) => `<span class="mc-color-${code.toLowerCase()}">`)
+                            .replace(/$/g, '</span>');
+        return `<div>${colored}</div>`;
+      }).join('');
+    }
+
     async function fetchFileList() {
       try {
         const res = await fetch(githubApiUrl);
@@ -116,27 +152,27 @@
       }
     }
 
-async function loadItem(file) {
-  try {
-    const res = await fetch(file.download_url);
-    const content = await res.text();
-    const data = jsyaml.load(content);
-    const id = file.name.replace(/\.ya?ml$/, '');
-    const name = stripColorCodes(data.name || '');
-    const material = data.material || '';
-    const rarity = data.rarity || '';
-    const type = data.type || data.Type || data.TYPE || '';
-    const rarityClass = getRarityClass(rarity);
-    const rarityRank = getRarityRank(rarity);
-    const statsObj = (typeof data.stats === 'object' && data.stats !== null) ? data.stats : {};
-    const statValues = statKeys.map(key => statsObj.hasOwnProperty(key) ? statsObj[key] : '*');
-    return { id, name, material, rarity, rarityClass, rarityRank, type, statValues };
-  } catch (err) {
-    console.error(`Failed loading ${file.name}:`, err);
-    return null;
-  }
-}
-
+    async function loadItem(file) {
+      try {
+        const res = await fetch(file.download_url);
+        const content = await res.text();
+        const data = jsyaml.load(content);
+        const id = file.name.replace(/\.ya?ml$/, '');
+        const name = stripColorCodes(data.name || '');
+        const material = data.material || '';
+        const rarity = data.rarity || '';
+        const type = data.type || data.Type || data.TYPE || '';
+        const lore = formatLoreWithColors(data.lore || []);
+        const rarityClass = getRarityClass(rarity);
+        const rarityRank = getRarityRank(rarity);
+        const statsObj = (typeof data.stats === 'object' && data.stats !== null) ? data.stats : {};
+        const statValues = statKeys.map(key => statsObj.hasOwnProperty(key) ? statsObj[key] : '*');
+        return { id, name, material, rarity, rarityClass, rarityRank, type, lore, statValues };
+      } catch (err) {
+        console.error(`Failed loading ${file.name}:`, err);
+        return null;
+      }
+    }
 
     async function main() {
       const files = await fetchFileList();
@@ -145,7 +181,6 @@ async function loadItem(file) {
       const loadPromises = files.map(file => loadItem(file));
       const items = (await Promise.all(loadPromises)).filter(item => item !== null);
 
-      // ✅ Sort by rarity first, then alphabetically inside rarity
       items.sort((a, b) => {
         if (a.rarityRank !== b.rarityRank) return a.rarityRank - b.rarityRank;
         return a.name.localeCompare(b.name);
@@ -163,6 +198,7 @@ async function loadItem(file) {
           <td>${item.material}</td>
           <td>${item.rarity}</td>
           <td>${item.type}</td>
+          <td class="lore-cell">${item.lore}</td>
           ${item.statValues.map(val => `<td>${val}</td>`).join('')}
         `;
         tbody.appendChild(row);
