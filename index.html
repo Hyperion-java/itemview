@@ -116,26 +116,27 @@
       }
     }
 
-    async function loadItem(file) {
-      try {
-        const res = await fetch(file.download_url);
-        const content = await res.text();
-        const data = jsyaml.load(content);
-        const id = file.name.replace(/\.ya?ml$/, '');
-        const name = stripColorCodes(data.name || '');
-        const material = data.material || '';
-        const rarity = data.rarity || '';
-        const type = data.type || data.Type || data.TYPE || '';
-        const rarityClass = getRarityClass(rarity);
-        const rarityRank = getRarityRank(rarity);
-        const statsObj = (typeof data.stats === 'object' && data.stats !== null) ? data.stats : {};
-        const statValues = statKeys.map(key => statsObj.hasOwnProperty(key) ? statsObj[key] : '*');
-        return { id, name, material, rarity, rarityClass, rarityRank, statValues };
-      } catch (err) {
-        console.error(`Failed loading ${file.name}:`, err);
-        return null;
-      }
-    }
+async function loadItem(file) {
+  try {
+    const res = await fetch(file.download_url);
+    const content = await res.text();
+    const data = jsyaml.load(content);
+    const id = file.name.replace(/\.ya?ml$/, '');
+    const name = stripColorCodes(data.name || '');
+    const material = data.material || '';
+    const rarity = data.rarity || '';
+    const type = data.type || data.Type || data.TYPE || '';
+    const rarityClass = getRarityClass(rarity);
+    const rarityRank = getRarityRank(rarity);
+    const statsObj = (typeof data.stats === 'object' && data.stats !== null) ? data.stats : {};
+    const statValues = statKeys.map(key => statsObj.hasOwnProperty(key) ? statsObj[key] : '*');
+    return { id, name, material, rarity, rarityClass, rarityRank, type, statValues };
+  } catch (err) {
+    console.error(`Failed loading ${file.name}:`, err);
+    return null;
+  }
+}
+
 
     async function main() {
       const files = await fetchFileList();
