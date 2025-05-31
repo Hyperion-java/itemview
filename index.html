@@ -1,211 +1,460 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Item Database Viewer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hyperion Items Viewer</title>
   <style>
     body {
-      background: #121212;
-      color: #ddd;
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #1e1e2f;
+      color: #eee;
     }
-    h1 { margin-bottom: 5px; }
-    #itemCount { margin-bottom: 15px; font-size: 1.1em; }
-    table {
+
+    #sidebar {
+      width: 300px;
+      background-color: #2b2b3c;
+      padding: 1em;
+      overflow-y: auto;
+      border-right: 2px solid #444;
+    }
+
+    #mainContent {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+    }
+
+    #fileContent {
+      flex: 1;
+      padding: 1em;
+      overflow-y: auto;
+      background-color: #28293d;
+    }
+
+    #infoPanel {
+      width: 250px;
+      background-color: #1e1e2f;
+      border-left: 2px solid #444;
+      padding: 1em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #itemNameOverlay {
+      margin-bottom: 0.5em;
+      padding: 0.5em;
+      background-color: #00000080;
       width: 100%;
-      border-collapse: collapse;
-      background: #1e1e1e;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 5px;
     }
-    th, td {
-      border: 1px solid #333;
-      padding: 8px;
-      text-align: middle;
-      vertical-align: top;
-    }
-    th {
-      background: #333;
-      color: #fff;
-    }
-    tr:nth-child(even) { background: #2a2a2a; }
-    .rarity-common { color: #ccc; }
-    .rarity-uncommon { color: #00ff00; }
-    .rarity-rare { color: #00bfff; }
-    .rarity-epic { color: #bf00ff; }
-    .rarity-legendary { color: gold; }
-    .rarity-ascended { color: darkred; }
+    
+    #itemStats {
+  margin-top: 1em;
+  width: 100%;
+  text-align: center;
+  background-color: #2b2b3c;
+  padding: 1em;
+  border-radius: 0;
+}
 
-    td.lore-cell {
-      min-width: 300px;
-      padding-left: 20px;
-      white-space: normal;
+
+    #itemImage {
+      width: 96px;
+      height: 96px;
+      image-rendering: pixelated;
     }
-    td.lore-cell div {
-      margin-bottom: 4px;
+    
+    #lorePanel {
+      margin-top: 1em;
+  width: 100%;
+  text-align: center;
+  background-color: #2b2b3c;
+  padding: 1em;
+  border-radius: 0;
+      font-size: 0.9em;
+    }
+    
+    #metaData {
+  margin-top: 1em;
+  width: 100%;
+  text-align: center;
+  background-color: #2b2b3c;
+  padding: 1em;
+  border-radius: 0;
     }
 
-    .mc-color-0 { color: #000000; }
-    .mc-color-1 { color: #0000aa; }
-    .mc-color-2 { color: #00aa00; }
-    .mc-color-3 { color: #00aaaa; }
-    .mc-color-4 { color: #aa0000; }
-    .mc-color-5 { color: #aa00aa; }
-    .mc-color-6 { color: #ffaa00; }
-    .mc-color-7 { color: #aaaaaa; }
-    .mc-color-8 { color: #555555; }
-    .mc-color-9 { color: #5555ff; }
-    .mc-color-a { color: #55ff55; }
-    .mc-color-b { color: #55ffff; }
-    .mc-color-c { color: #ff5555; }
-    .mc-color-d { color: #ff55ff; }
-    .mc-color-e { color: #ffff55; }
-    .mc-color-f { color: #ffffff; }
+    /* Style lore lines with Minecraft colors */
+    .mc-lore {
+      display: block;
+      margin-bottom: 0.25em;
+    }
+
+    #itemInfo {
+  margin-top: 1em;
+  width: 100%;
+  text-align: center;
+  background-color: #2b2b3c;
+  padding: 1em;
+  border-radius: 0; /* <== changed this from 10px */
+}
+
+
+    .file {
+      cursor: pointer;
+      padding: 0.3em 0;
+      border-bottom: 1px solid #444;
+    }
+
+    .file:hover {
+      background-color: #3c3c5a;
+    }
+    
+    #historyContainer {
+  margin-top: 2em;
+}
+
+#historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #2b2b3c;
+  color: #eee;
+  font-size: 0.9em;
+  border: 1px solid #444;
+}
+
+#historyTable th,
+#historyTable td {
+  border: 1px solid #444;
+  padding: 0.5em;
+  text-align: left;
+}
+
+#historyTable th {
+  background-color: #1e1e2f;
+  font-weight: bold;
+}
+
+#historyTable tr:nth-child(even) {
+  background-color: #323246;
+}
+
+
+    pre {
+      background: #1e1e2f;
+      padding: 1em;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+    }
+
+    .mc {
+      font-weight: bold;
+    }
+
+    #search {
+      width: 100%;
+      padding: 0.5em;
+      margin-bottom: 1em;
+      border-radius: 5px;
+      border: none;
+      font-size: 1em;
+      background-color: #1e1e2f;
+      color: #eee;
+    }
   </style>
 </head>
 <body>
-  <h1>Item Database Viewer</h1>
-  <p id="itemCount">Loading items...</p>
-  <table id="itemsTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Material</th>
-        <th>Rarity</th>
-        <th>Type</th>
-        <th>Lore</th>
-        <th>Damage</th>
-        <th>Strength</th>
-        <th>Health</th>
-        <th>Defense</th>
-        <th>Speed</th>
-        <th>Ferocity</th>
-        <th>Prosperity</th>
-        <th>True Defense</th>
-        <th>Mining Fortune</th>
-        <th>Fishing Fortune</th>
-        <th>Farming Fortune</th>
-        <th>Attack Speed</th>
-        <th>Amulet Damage</th>
-        <th>Amulet Defense</th>
-        <th>True Damage</th>
-        <th>Heat Resistance</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div id="sidebar">
+    <h3>📁 Item List</h3>
+    <input type="text" id="search" placeholder="Search items...">
+    <div id="fileList">Loading...</div>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
-  <script>
-    const githubApiUrl = 'https://api.github.com/repos/Hyperion-java/Items/contents/';
-    const statKeys = [
-      'damage', 'strength', 'health', 'defense', 'speed', 'ferocity', 'prosperity', 'truedefense',
-      'mining_fortune', 'fishing_fortune', 'farming_fortune', 'attack_speed',
-      'amuletdamage', 'amuletdefense', 'truedamage', 'heat_resistance'
-    ];
-    const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ascended'];
+  <div id="mainContent">
+  
+    <div id="fileContent">Click a file on the left to view its contents.</div>
+    
 
-    function stripColorCodes(text) {
-      return text.replace(/&[0-9a-fklmnor]/gi, '').trim();
-    }
 
-    function getCleanRarity(rarity) {
-      return stripColorCodes(rarity).toLowerCase().trim();
-    }
+    
+    
+    <div id="infoPanel">
+      <div id="itemNameOverlay">No Item</div>
+      <img id="itemImage" src="" alt="Item Image">
+      <div id="itemInfo">
+        <div><strong>Type:</strong> <span id="itemType">—</span></div>
+        <div><strong>Rarity:</strong> <span id="itemRarity">—</span></div>
+      </div>
+      <div id="itemStats">
+  <strong>Stats:</strong>
+  
+  <div id="statsList">—</div>
+</div>
 
-    function getRarityRank(rarity) {
-      const clean = getCleanRarity(rarity);
-      for (let i = 0; i < rarityOrder.length; i++) {
-        if (clean === rarityOrder[i]) return i;
+<div id="lorePanel">
+      <strong>Lore:</strong>
+      <p></p>
+      <div id="loreContent">Select an item to see its lore.</div>
+    </div>
+    
+    <div id="metaData">
+    <strong>Item Metadata:</strong>
+  <p><strong>Item ID:</strong> <span id="itemId"></span></p>
+</div>
+  
+ 
+
+    </div>
+  </div>
+
+<script>
+  const apiBase = 'https://api.github.com/repos/Hyperion-java/Items/contents/';
+  const fileListEl = document.getElementById('fileList');
+  const fileContentEl = document.getElementById('fileContent');
+  const searchInput = document.getElementById('search');
+
+  const itemNameOverlay = document.getElementById('itemNameOverlay');
+  const itemImage = document.getElementById('itemImage');
+  const itemType = document.getElementById('itemType');
+  const itemRarity = document.getElementById('itemRarity');
+  const statsList = document.getElementById('statsList');
+  const loreContent = document.getElementById('loreContent');
+    const itemIdEl = document.getElementById('itemId');
+  
+  
+
+  const mcColors = {
+    '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
+    '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
+    '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
+    'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF'
+  };
+
+  const rarityOrder = [
+    'common', 'uncommon', 'rare', 'epic',
+    'legendary', 'mythic', 'ascended'
+  ];
+
+  let allFiles = [];
+
+  // Same colorizeMinecraft, but add a separate function for lore coloring (returns html with spans)
+  function colorizeMinecraft(text) {
+    return text.replace(/&([0-9a-f])/gi, (_, code) => {
+      const color = mcColors[code.toLowerCase()];
+      return `</span><span class="mc" style="color:${color}">`;
+    }).replace(/^/, '<span class="mc">') + '</span>';
+  }
+
+  // For lore lines, to avoid nested span issues, let's create safe colorized HTML
+  function colorizeMinecraftLore(text) {
+    let result = '';
+    let lastIndex = 0;
+    const regex = /&([0-9a-f])/gi;
+    let match;
+    let currentColor = mcColors['f']; // default white
+
+    while ((match = regex.exec(text)) !== null) {
+      const index = match.index;
+      // Append text before code with current color
+      if (index > lastIndex) {
+        const segment = text.substring(lastIndex, index);
+        result += `<span class="mc-lore" style="color:${currentColor}">${escapeHtml(segment)}</span>`;
       }
-      return rarityOrder.length;
+      currentColor = mcColors[match[1].toLowerCase()] || currentColor;
+      lastIndex = index + 2; // skip color code
     }
-
-    function getRarityClass(rarity) {
-      const clean = getCleanRarity(rarity);
-      if (clean === 'legendary') return 'rarity-legendary';
-      if (clean === 'epic') return 'rarity-epic';
-      if (clean === 'uncommon') return 'rarity-uncommon';
-      if (clean === 'common') return 'rarity-common';
-      if (clean === 'rare') return 'rarity-rare';
-      if (clean === 'ascended') return 'rarity-ascended';
-      return '';
+    // Append remaining text
+    if (lastIndex < text.length) {
+      result += `<span class="mc-lore" style="color:${currentColor}">${escapeHtml(text.substring(lastIndex))}</span>`;
     }
+    return result || `<span class="mc-lore">${escapeHtml(text)}</span>`;
+  }
 
-    function formatLoreWithColors(loreArray) {
-      if (!Array.isArray(loreArray)) return '';
-      return loreArray.map(line => {
-        const colored = line.replace(/&([0-9a-f])/gi, (_, code) => `<span class="mc-color-${code.toLowerCase()}">`)
-                            .replace(/$/g, '</span>');
-        return `<div>${colored}</div>`;
-      }).join('');
-    }
+  async function loadFileList() {
+    const res = await fetch(apiBase);
+    const files = await res.json();
+    fileListEl.innerHTML = '';
 
-    async function fetchFileList() {
-      try {
-        const res = await fetch(githubApiUrl);
-        const files = await res.json();
-        return files.filter(file => file.name.endsWith('.yml'));
-      } catch (err) {
-        console.error('Failed to fetch files:', err);
-        return [];
-      }
-    }
+    allFiles = [];
 
-    async function loadItem(file) {
-      try {
-        const res = await fetch(file.download_url);
-        const content = await res.text();
-        const data = jsyaml.load(content);
-        const id = file.name.replace(/\.ya?ml$/, '');
-        const name = stripColorCodes(data.name || '');
-        const material = data.material || '';
-        const rarity = data.rarity || '';
-        const type = data.type || data.Type || data.TYPE || '';
-        const lore = formatLoreWithColors(data.lore || []);
-        const rarityClass = getRarityClass(rarity);
-        const rarityRank = getRarityRank(rarity);
-        const statsObj = (typeof data.stats === 'object' && data.stats !== null) ? data.stats : {};
-        const statValues = statKeys.map(key => statsObj.hasOwnProperty(key) ? statsObj[key] : '*');
-        return { id, name, material, rarity, rarityClass, rarityRank, type, lore, statValues };
-      } catch (err) {
-        console.error(`Failed loading ${file.name}:`, err);
-        return null;
-      }
-    }
+    for (const file of files) {
+      if (!file.name.endsWith('.yml')) continue;
 
-    async function main() {
-      const files = await fetchFileList();
-      document.getElementById('itemCount').textContent = `Found ${files.length} items.`;
+      const contentRes = await fetch(file.download_url);
+      const text = await contentRes.text();
 
-      const loadPromises = files.map(file => loadItem(file));
-      const items = (await Promise.all(loadPromises)).filter(item => item !== null);
+      const nameMatch = text.match(/^name:\s*["']?(.+?)["']?\s*$/m);
+      const rarityMatch = text.match(/^rarity:\s*["']?(.+?)["']?\s*$/im);
+      const materialMatch = text.match(/^material:\s*["']?(.+?)["']?\s*$/im);
+      const typeMatch = text.match(/^type:\s*["']?(.+?)["']?\s*$/im);
 
-      items.sort((a, b) => {
-        if (a.rarityRank !== b.rarityRank) return a.rarityRank - b.rarityRank;
-        return a.name.localeCompare(b.name);
+      const rawName = nameMatch ? nameMatch[1] : file.name;
+      const rarity = rarityMatch ? rarityMatch[1].toLowerCase() : 'common';
+      const material = materialMatch ? materialMatch[1].toLowerCase() : 'barrier';
+      const type = typeMatch ? typeMatch[1] : 'Unknown';
+
+      allFiles.push({
+        rawName,
+        displayName: colorizeMinecraft(rawName),
+        file,
+        rarity,
+        material,
+        type,
+        text
       });
-
-      const tbody = document.querySelector('#itemsTable tbody');
-      tbody.innerHTML = '';
-
-      for (const item of items) {
-        const row = document.createElement('tr');
-        row.className = item.rarityClass;
-        row.innerHTML = `
-          <td>${item.id}</td>
-          <td>${item.name}</td>
-          <td>${item.material}</td>
-          <td>${item.rarity}</td>
-          <td>${item.type}</td>
-          <td class="lore-cell">${item.lore}</td>
-          ${item.statValues.map(val => `<td>${val}</td>`).join('')}
-        `;
-        tbody.appendChild(row);
-      }
     }
 
-    window.addEventListener('DOMContentLoaded', main);
-  </script>
+    allFiles.sort((a, b) => {
+      return rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity);
+    });
+
+    renderFilteredFiles('');
+  }
+
+  function renderFilteredFiles(query) {
+    fileListEl.innerHTML = '';
+    const filtered = allFiles.filter(f =>
+      f.rawName.replace(/&[0-9a-f]/gi, '').toLowerCase().includes(query.toLowerCase())
+    );
+
+    for (const f of filtered) {
+      const div = document.createElement('div');
+      div.className = 'file';
+      div.innerHTML = f.displayName;
+      div.onclick = () => showFileContent(f);
+      fileListEl.appendChild(div);
+    }
+
+    if (filtered.length === 0) {
+      fileListEl.innerHTML = '<p>No items found.</p>';
+      loreContent.innerHTML = 'Select an item to see its lore.';
+    }
+  }
+
+  async function showFileContent(f) {
+  const material = f.material.toLowerCase();
+  const imageUrl = `https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.5/assets/minecraft/textures/item/${material}.png`;
+
+  fileContentEl.innerHTML = `
+    <h2>${f.file.name}</h2>
+    <p>The ${f.rawName.replace(/&[0-9a-f]/gi, '')}, is a ${f.rarity.toUpperCase()} ${f.type}.</p>
+    <pre>${escapeHtml(f.text)}</pre>
+    <div id="historyContainer">
+      <h2>History</h2>
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Author</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="3">Loading history...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  itemImage.src = imageUrl;
+  itemImage.onerror = () => {
+    itemImage.src = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.5/assets/minecraft/textures/item/barrier.png";
+  };
+
+  itemNameOverlay.innerHTML = f.displayName;
+  itemType.textContent = f.type || 'Unknown';
+  itemIdEl.textContent = f.file.name.replace(/\.yml$/i, '');
+  itemRarity.textContent = (f.rarity || 'unknown').toUpperCase();
+
+  // Parse stats
+  const statsRegex = /stats:\s*\n((?:\s{2,}[\w_]+:\s*[\d\w\s\-_.]+(?:\n|$))*)/m;
+  const statsMatch = f.text.match(statsRegex);
+
+  let statsHTML = '';
+
+  if (statsMatch) {
+    const lines = statsMatch[1].split('\n').filter(line => line.trim() !== '');
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      const [key, value] = trimmedLine.split(/:\s*/);
+      statsHTML += `${capitalize(key)}: ${value}<br>`;
+    }
+  } else {
+    statsHTML = '—';
+  }
+
+  statsList.innerHTML = statsHTML;
+
+  // Parse lore
+  const loreRegex = /lore:\s*\n((?:\s*-\s*".*?"\s*\n?)*)/m;
+  const loreMatch = f.text.match(loreRegex);
+  if (loreMatch) {
+    const loreBlock = loreMatch[1];
+    const loreLines = [...loreBlock.matchAll(/-\s*"([^"]+)"/g)].map(m => m[1]);
+    loreContent.innerHTML = loreLines.map(line => colorizeMinecraftLore(line)).join('');
+  } else {
+    loreContent.innerHTML = '—';
+  }
+
+  // Fetch commit history
+  const historyTableBody = document.querySelector('#historyTable tbody');
+  try {
+    const commitsRes = await fetch(`https://api.github.com/repos/Hyperion-java/Items/commits?path=${f.file.path}`);
+    if (!commitsRes.ok) throw new Error('Failed to fetch commit history');
+    const commits = await commitsRes.json();
+    if (commits.length === 0) {
+      historyTableBody.innerHTML = '<tr><td colspan="3">No history available.</td></tr>';
+    } else {
+      historyTableBody.innerHTML = '';
+      for (const commit of commits) {
+        const date = new Date(commit.commit.author.date).toLocaleDateString();
+        const author = commit.commit.author.name;
+        const message = commit.commit.message;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${date}</td>
+          <td>${escapeHtml(author)}</td>
+          <td>${escapeHtml(message)}</td>
+        `;
+        historyTableBody.appendChild(row);
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching commit history:', error);
+    historyTableBody.innerHTML = '<tr><td colspan="3">Error loading history.</td></tr>';
+  }
+}
+
+
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  searchInput.addEventListener('input', () => {
+    renderFilteredFiles(searchInput.value);
+    loreContent.innerHTML = 'Select an item to see its lore.';
+  });
+  
+  
+
+  loadFileList();
+</script>
+
+
 </body>
 </html>
