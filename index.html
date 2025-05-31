@@ -5,170 +5,170 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Hyperion Items Viewer</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      height: 100vh;
-      background-color: #1e1e2f;
-      color: #eee;
-    }
-
-    #sidebar {
-      width: 300px;
-      background-color: #2b2b3c;
-      padding: 1em;
-      overflow-y: auto;
-      border-right: 2px solid #444;
-    }
-
-    #mainContent {
-      flex: 1;
-      display: flex;
-      flex-direction: row;
-      overflow: hidden;
-    }
-
-    #fileContent {
-      flex: 1;
-      padding: 1em;
-      overflow-y: auto;
-      background-color: #28293d;
-    }
-
-    #infoPanel {
-      width: 250px;
-      background-color: #1e1e2f;
-      border-left: 2px solid #444;
-      padding: 1em;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    #itemNameOverlay {
-      margin-bottom: 0.5em;
-      padding: 0.5em;
-      background-color: #00000080;
-      width: 100%;
-      text-align: center;
-      font-weight: bold;
-      border-radius: 5px;
-    }
-    
-    #itemStats {
-  margin-top: 1em;
-  width: 100%;
-  text-align: center;
-  background-color: #2b2b3c;
-  padding: 1em;
-  border-radius: 0;
+/* Global dark mode wiki-like styling */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  height: 100vh;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
 }
 
-
-    #itemImage {
-      width: 96px;
-      height: 96px;
-      image-rendering: pixelated;
-    }
-    
-    #lorePanel {
-      margin-top: 1em;
-  width: 100%;
-  text-align: center;
-  background-color: #2b2b3c;
+/* Sidebar navigation */
+#sidebar {
+  width: 300px;
+  background-color: #222;
   padding: 1em;
-  border-radius: 0;
-      font-size: 0.9em;
-    }
-    
-    #metaData {
-  margin-top: 1em;
-  width: 100%;
-  text-align: center;
-  background-color: #2b2b3c;
-  padding: 1em;
-  border-radius: 0;
-    }
-
-    /* Style lore lines with Minecraft colors */
-    .mc-lore {
-      display: block;
-      margin-bottom: 0.25em;
-    }
-
-    #itemInfo {
-  margin-top: 1em;
-  width: 100%;
-  text-align: center;
-  background-color: #2b2b3c;
-  padding: 1em;
-  border-radius: 0; /* <== changed this from 10px */
+  overflow-y: auto;
+  border-right: 1px solid #333;
 }
 
+/* Main content container */
+#mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
 
-    .file {
-      cursor: pointer;
-      padding: 0.3em 0;
-      border-bottom: 1px solid #444;
-    }
+/* Main file content area */
+#fileContent {
+  flex: 1;
+  padding: 1.5em;
+  overflow-y: auto;
+  background-color: #1e1e1e;
+}
 
-    .file:hover {
-      background-color: #3c3c5a;
-    }
-    
-    #historyContainer {
+/* Info panel */
+#infoPanel {
+  width: 250px;
+  background-color: #181818;
+  border-left: 1px solid #333;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Item name display */
+#itemNameOverlay {
+  margin-bottom: 0.5em;
+  padding: 0.5em;
+  background-color: #2a2a2a;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 6px;
+  font-size: 1.1em;
+  color: #ffd700;
+}
+
+/* Section panels */
+#itemStats,
+#lorePanel,
+#metaData,
+#itemInfo {
+  margin-top: 1em;
+  width: 100%;
+  background-color: #252525;
+  border: 1px solid #333;
+  padding: 1em;
+  border-radius: 6px;
+  font-size: 0.95em;
+  text-align: left;
+  line-height: 1.6;
+}
+
+/* Lore lines (Minecraft style text) */
+.mc-lore {
+  display: block;
+  margin-bottom: 0.25em;
+  font-style: italic;
+  color: #cccccc;
+}
+
+/* Pixel-style item image */
+#itemImage {
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+  margin-bottom: 1em;
+}
+
+/* File list entries */
+.file {
+  cursor: pointer;
+  padding: 0.4em 0;
+  border-bottom: 1px solid #333;
+  color: #ddd;
+}
+
+.file:hover {
+  background-color: #2e2e2e;
+}
+
+/* Search bar styling */
+#search {
+  width: 100%;
+  padding: 0.5em;
+  margin-bottom: 1em;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background-color: #121212;
+  color: #eee;
+  font-size: 1em;
+}
+
+/* History container */
+#historyContainer {
   margin-top: 2em;
 }
 
+/* History table styling */
 #historyTable {
   width: 100%;
   border-collapse: collapse;
-  background-color: #2b2b3c;
-  color: #eee;
+  background-color: #222;
+  color: #e0e0e0;
   font-size: 0.9em;
-  border: 1px solid #444;
+  border: 1px solid #333;
 }
 
 #historyTable th,
 #historyTable td {
-  border: 1px solid #444;
+  border: 1px solid #333;
   padding: 0.5em;
   text-align: left;
 }
 
 #historyTable th {
-  background-color: #1e1e2f;
+  background-color: #1c1c1c;
   font-weight: bold;
 }
 
 #historyTable tr:nth-child(even) {
-  background-color: #323246;
+  background-color: #292929;
+}
+
+/* Code blocks */
+pre {
+  background: #1c1c1c;
+  padding: 1em;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-family: Consolas, monospace;
+  font-size: 0.95em;
+  border: 1px solid #333;
+}
+
+/* Bold stylings for MC info */
+.mc {
+  font-weight: bold;
 }
 
 
-    pre {
-      background: #1e1e2f;
-      padding: 1em;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      overflow-wrap: break-word;
-    }
-
-    .mc {
-      font-weight: bold;
-    }
-
-    #search {
-      width: 100%;
-      padding: 0.5em;
-      margin-bottom: 1em;
-      border-radius: 5px;
-      border: none;
-      font-size: 1em;
-      background-color: #1e1e2f;
-      color: #eee;
-    }
   </style>
 </head>
 <body>
