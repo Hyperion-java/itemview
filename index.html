@@ -17,7 +17,7 @@ body {
 
 /* Sidebar navigation */
 #sidebar {
-  width: 500px;
+  width: 300px;
   background-color: #222;
   padding: 1em;
   overflow-y: auto;
@@ -82,11 +82,11 @@ body {
 
 /* Lore lines (Minecraft style text) */
 .mc-lore {
-  display: block;
-  margin-bottom: 0.25em;
+  display: inline;  /* previously block */
   font-style: italic;
   color: #cccccc;
 }
+
 
 /* Pixel-style item image */
 #itemImage {
@@ -254,29 +254,36 @@ pre {
   }
 
   // For lore lines, to avoid nested span issues, let's create safe colorized HTML
-  function colorizeMinecraftLore(text) {
-    let result = '';
-    let lastIndex = 0;
-    const regex = /&([0-9a-f])/gi;
-    let match;
-    let currentColor = mcColors['f']; // default white
+function colorizeMinecraftLore(text) {
+  let result = '';
+  let lastIndex = 0;
+  const regex = /&([0-9a-f])/gi;
+  let match;
+  let currentColor = mcColors['f']; // default white
 
-    while ((match = regex.exec(text)) !== null) {
-      const index = match.index;
-      // Append text before code with current color
-      if (index > lastIndex) {
-        const segment = text.substring(lastIndex, index);
-        result += `<span class="mc-lore" style="color:${currentColor}">${escapeHtml(segment)}</span>`;
-      }
-      currentColor = mcColors[match[1].toLowerCase()] || currentColor;
-      lastIndex = index + 2; // skip color code
+  while ((match = regex.exec(text)) !== null) {
+    const index = match.index;
+    if (index > lastIndex) {
+      const segment = text.substring(lastIndex, index);
+      result += `<span class="mc-lore" style="color:${currentColor}">${escapeHtml(segment)}</span>`;
     }
-    // Append remaining text
-    if (lastIndex < text.length) {
-      result += `<span class="mc-lore" style="color:${currentColor}">${escapeHtml(text.substring(lastIndex))}</span>`;
-    }
-    return result || `<span class="mc-lore">${escapeHtml(text)}</span>`;
+    currentColor = mcColors[match[1].toLowerCase()] || currentColor;
+    lastIndex = index + 2;
   }
+
+  if (lastIndex < text.length) {
+    result += `<span class="mc-lore" style="color:${currentColor}">${escapeHtml(text.substring(lastIndex))}</span>`;
+  }
+
+  // Handle lines with only color codes (no visible chars)
+  if (text.replace(/&[0-9a-f]/gi, '').trim() === '') {
+    return `<span class="mc-lore" style="color:${currentColor}">&nbsp;</span>`;
+  }
+
+  return result;
+}
+
+
 
   async function loadFileList() {
     const res = await fetch(apiBase);
@@ -399,7 +406,7 @@ pre {
   if (loreMatch) {
     const loreBlock = loreMatch[1];
     const loreLines = [...loreBlock.matchAll(/-\s*"([^"]+)"/g)].map(m => m[1]);
-    loreContent.innerHTML = loreLines.map(line => colorizeMinecraftLore(line)).join('');
+    loreContent.innerHTML = loreLines.map(line => `<div>${colorizeMinecraftLore(line)}</div>`).join('');
   } else {
     loreContent.innerHTML = '—';
   }
